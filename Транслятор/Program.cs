@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Транслятор {
 
@@ -10,11 +12,13 @@ namespace Транслятор {
                 return -1;
             }
             try {
-                Console.WriteLine(Translator.Translate(args[0].RemoveWhiteSpaces()));
+                var t = new Translator("test.bin");
+                t.Translate(args[0].RemoveWhiteSpaces());
+                Console.WriteLine("~> Done!");
                 Console.Read();
             }
             catch (Exception e) {
-                Console.WriteLine(e.Message);
+                Console.WriteLine("~> " + e.Message);
                 return -1;
             }
             

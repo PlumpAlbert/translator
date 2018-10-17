@@ -35,27 +35,6 @@ namespace Транслятор {
             }
         }
 
-        /// <summary>
-        /// Returns <see cref="Priority"/> for this operation
-        /// </summary>
-        public static Priority OperationPriority(this char c) {
-            switch (c) {
-                case '^':
-                    return Priority.Extreme;
-                case '*':
-                case '/':
-                    return Priority.High;
-                case '+':
-                case '-':
-                    return Priority.Normal;
-                case '(':
-                case ')':
-                    return Priority.Low;
-            }
-
-            throw new ArgumentException("Character is not a operator");
-        }
-
     }
 
 }

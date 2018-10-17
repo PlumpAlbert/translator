@@ -43,6 +43,7 @@
     <Compile Include="CharHelpers.cs" />
     <Compile Include="StringHelpers.cs" />
     <Compile Include="Translator.cs" />
+    <Compile Include="Variable.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
