@@ -1,19 +1,18 @@
 ﻿using System;
-using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Транслятор {
 
     internal class Program {
 
         public static int Main(string[] args) {
-            if (args.Length < 1) {
+            if (args.Length < 2) {
                 Console.WriteLine("No arguments specified!");
                 return -1;
             }
+
             try {
-                var t = new Translator("test.bin");
-                t.Translate(args[0].RemoveWhiteSpaces());
+                var t = new Translator(args[1]);
+                t.Translate(args[0]);
                 Console.WriteLine("~> Done!");
                 Console.Read();
             }
@@ -21,7 +20,7 @@ namespace Транслятор {
                 Console.WriteLine("~> " + e.Message);
                 return -1;
             }
-            
+
             return 0;
         }
 

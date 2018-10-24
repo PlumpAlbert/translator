@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 
 namespace Транслятор {
 
@@ -8,7 +9,7 @@ namespace Транслятор {
         /// <summary>
         /// The name of the variable (blank if const)
         /// </summary>
-        public string Name { get; }
+        public string Name { get; private set; }
 
         /// <summary>
         /// The value of the variable (blank if not const)
@@ -17,8 +18,9 @@ namespace Транслятор {
 
 
         public Variable(string name) {
+            double result;
             // If it's a const
-            if (double.TryParse(name, out double result)) {
+            if (double.TryParse(name, NumberStyles.Any, CultureInfo.InvariantCulture, out result)) {
                 this.Name = string.Empty;
                 this.Value = result;
                 return;
@@ -26,8 +28,9 @@ namespace Транслятор {
 
             // Otherwise
             this.Name = name;
-            this.Value = default(double);
+            this.Value = double.NaN;
         }
+
     }
 
 }

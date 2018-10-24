@@ -1,4 +1,4 @@
-using System;
+using System.Text.RegularExpressions;
 
 namespace Транслятор {
 
@@ -7,17 +7,22 @@ namespace Транслятор {
     /// </summary>
     public enum Priority {
         Low = 0,
-        Normal,
-        High,
-        Extreme
+        Normal = 1,
+        High = 2,
+        Extreme = 3
     }
 
     public static class CharHelpers {
 
+        private static readonly Regex regex = new Regex(@"[a-zA-Z]");
+
         /// <summary>
         /// If character is number returns true 
         /// </summary>
-        public static bool IsNumber(this char c) => int.TryParse(c.ToString(), out int i);
+        public static bool IsNumber(this char c) {
+            int i;
+            return int.TryParse(c.ToString(), out i);
+        }
 
         /// <summary>
         /// If character is operator (+, -, /, *, etc.) returns true.
@@ -34,6 +39,8 @@ namespace Транслятор {
                     return false;
             }
         }
+
+        public static bool IsLetter(this char c) => regex.IsMatch(c.ToString());
 
     }
 

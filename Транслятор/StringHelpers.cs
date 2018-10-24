@@ -1,4 +1,5 @@
 using System;
+using System.Text.RegularExpressions;
 
 namespace Транслятор {
 
@@ -18,12 +19,19 @@ namespace Транслятор {
         }
 
         /// <summary>
-        /// Gets the last character of this string
+        /// Checks if the string is a prefix function (sin, cos, etc...)
         /// </summary>
-        public static char GetLastChar(this string s) {
-            if (!string.IsNullOrWhiteSpace(s))
-                return s[s.Length - 1];
-            return 'a';
+        public static bool IsPrefixFunction(this string s) {
+            switch (s) {
+                case "sin":
+                case "cos":
+                case "tan":
+                case "ctg":
+                case "sqrt":
+                case "ln":
+                    return true;
+                default: return false;
+            }
         }
 
         /// <summary>
@@ -39,14 +47,20 @@ namespace Транслятор {
                 case "/": return 3;
                 case "*": return 4;
                 case "^": return 5;
+                case "sin": return 6;
+                case "cos": return 7;
+                case "tan": return 8;
+                case "ctg": return 9;
+                case "sqrt": return 10;
+                case "ln": return 11;
             }
         }
 
         /// <summary>
         /// Returns <see cref="Priority"/> for this operation
         /// </summary>
-        public static Priority OperationPriority(this string c) {
-            switch (c) {
+        public static Priority OperationPriority(this string s) {
+            switch (s) {
                 case "^":
                     return Priority.Extreme;
                 case "*":
@@ -61,6 +75,54 @@ namespace Транслятор {
             }
 
             throw new ArgumentException("String is not a operator");
+        }
+
+        /// <summary>
+        /// Checks if the current string is operation
+        /// </summary>
+        public static bool IsOperation(this string s) {
+            switch (s) {
+                case "sin":
+                case "cos":
+                case "tan":
+                case "ctg":
+                case "sqrt":
+                case "ln":
+                case "+":
+                case "-":
+                case "/":
+                case "*":
+                case "^":
+                    return true;
+                
+                default: return false;
+            }
+        }
+
+        /// <summary>
+        /// Checks if the operation is left associative
+        /// </summary>
+        /// <param name="s"></param>
+        /// <returns></returns>
+        public static bool LeftAssociative(this string s) {
+            switch (s) {
+                case "^":
+                    return false;
+                default: return true;
+            }
+        }
+
+        public static bool IsBinary(this string s) {
+            switch (s) {
+                case "+":
+                case "-":
+                case "/":
+                case "*":
+                case "^":
+                    return true;
+                default:
+                    return false;
+            }
         }
     }
 

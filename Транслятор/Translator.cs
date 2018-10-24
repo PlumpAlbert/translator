@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Транслятор {
 
-    public class Translator {
+    public class Translator : IDisposable {
 
         #region Private Members
 
@@ -22,7 +21,7 @@ namespace Транслятор {
         /// </summary>
         /// <param name="path">The path of the output file</param>
         public Translator(string path) {
-            this.bWriter = new BinaryWriter(File.OpenWrite(path), Encoding.ASCII, false);
+            this.bWriter = new BinaryWriter(File.Create(path), Encoding.ASCII, false);
         }
 
         #endregion
@@ -33,78 +32,163 @@ namespace Транслятор {
         /// Translates the expression
         /// </summary>
         public void Translate(string expression) {
+            Variable[] variables;
+            var list = ReversePolishNotation(expression, out variables).Split(' ');
+            var stack = new Stack<ushort>();
+            foreach (var s in list) {
+                if (s.IsOperation()) {
+                    // Write code operation
+                    this.bWriter.Write(s.EncodeOperation());
+                    // Take first argument
+                    var tmp = stack.Pop();
+                    // If it's a binary function
+                    if (s.IsBinary())
+                        // Write left argument
+                        this.bWriter.Write(stack.Pop());
+                    // Write argument
+                    this.bWriter.Write(tmp);
+                    // Push index of right argument as a result
+                    stack.Push(tmp);
+                }
+                else stack.Push(ushort.Parse(s));
+            }
+        }
+        
+        /// <summary>
+        /// Transforms infix notation into the reversed Polish notation
+        /// </summary>
+        /// <param name="src">Expression to translate</param>
+        /// <param name="varArray">Array, which will contain all of the variables/constants</param>
+        /// <returns>Expression in reversed Polish notation</returns>
+        private string ReversePolishNotation(string src, out Variable[] varArray) {
+            // Preprocessing expression
+            src = src.RemoveWhiteSpaces();
+            src = src.Replace(',', '.');
+            // Define variables
             var stack = new Stack<string>();
-            int i = 0;
-            char c = expression[i];
-            var numberRegex = new Regex(@"\d+(\.\d+)*");
-            var charRegex = new Regex(@"[a-zA-Z]");
-            string output = string.Empty;
-            /* Addition */
+            char c;
+            var buf = string.Empty;
+            var numberRgx = new Regex(@"\d+(\.\d+)*");
+            // Define output variables
             var varList = new List<Variable>();
+            var output = string.Empty;
+            ////////////////////////////////
+            for (int i = 0; i < src.Length; i++) {
+                // Take character from src string
+                c = src[i];
 
-            while (i < expression.Length) {
-                if (c.IsOperator()) {
-                    while (stack.Count != 0
-                           && stack.Peek().OperationPriority() >= c.ToString().OperationPriority()
-                           && stack.Peek().OperationPriority() != Priority.Extreme) {
-                        this.bWriter.Write(stack.Pop());
+                // Perform action, depending on type of this character
+                // If it's a number
+                if (c.IsNumber() || c == '.') {
+                    if (string.IsNullOrEmpty(buf) || numberRgx.IsMatch(buf)) {
+                        // Write it to buf
+                        buf += c;
+                        continue;
+                    }
+                    throw new Exception("Wrong number designation");
+                }
+
+                // If it's a letter
+                if (c.IsLetter()) {
+                    if (string.IsNullOrEmpty(buf) || buf[0].IsLetter()) {
+                        buf += c;
+                        continue;
                     }
 
-                    stack.Push(c.ToString());
-                    if (i == expression.Length - 1)
-                        goto Done;
-                    c = expression[++i];
-                    continue;
+                    throw new Exception("Wrong name of the variable");
                 }
 
-                if (c == '(') {
-                    stack.Push(c.ToString());
-                    c = expression[++i];
-                    continue;
-                }
-
-                if (c == ')') {
-                    while (stack.Peek() != "(")
-                        this.bWriter.Write(stack.Pop());
-                    stack.Pop();
-                    if (i == expression.Length - 1)
-                        goto Done;
-                    c = expression[++i];
-                    continue;
-                }
-
-                while (true) {
-                    if (c.IsNumber()
-                        || charRegex.IsMatch(c.ToString())) {
-                        output += c;
-                        if (i == expression.Length - 1) {
-                            this.bWriter.Write((ushort) varList.Count);
-                            varList.Add(new Variable(output));
-                            goto Done;
-                        }
-                        c = expression[++i];
-                    }
+                // If the buf string is not empty
+                if (!string.IsNullOrEmpty(buf)) {
+                    // Check if it's an operation
+                    if (buf.IsOperation())
+                        stack.Push(buf);
                     else {
-                        this.bWriter.Write((ushort) varList.Count);
-                        varList.Add(new Variable(output));
-                        output = string.Empty;
-                        break;
+                        // Write index of the constant / variable
+                        output += varList.Count + " ";
+                        // Push variable in list
+                        varList.Add(new Variable(buf));
+                    }
+
+                    buf = string.Empty;
+                }
+
+                switch (c) {
+                    // If it's a opening bracket
+                    case '(':
+                        stack.Push("(");
+                        continue;
+                    // If it's a closing bracket
+                    case ')': {
+                        var err = true;
+                        if (stack.Count > 0) {
+                            while (stack.Peek() != "(") {
+                                err = false;
+                                // Write operation to the output
+                                output += stack.Pop() + " ";
+                                if (stack.Count == 0)
+                                    throw new Exception("Wrong bracket sequence");
+                            }
+                        }
+                        else throw new Exception("Wrong bracket sequence");
+
+                        if (err)
+                            throw new Exception("Wrong bracket sequence");
+
+                        stack.Pop();
+                        continue;
                     }
                 }
 
+                // If it's a operator
+                if (c.IsOperator()) {
+                    if (stack.Count > 0) {
+                        while (stack.Peek().IsPrefixFunction()
+                               || stack.Peek().OperationPriority() > c.ToString().OperationPriority()
+                               || stack.Peek().LeftAssociative()
+                               && stack.Peek().OperationPriority() == c.ToString().OperationPriority()) {
+                            if(string.IsNullOrEmpty(output))
+                                throw new Exception("Error in the expression");
+                            // Write operation to the output
+                            output += stack.Pop() + " ";
+                            if (stack.Count == 0) break;
+                        }
+                    }
+
+                    stack.Push(c.ToString());
+                    continue;
+                }
+
+                throw new Exception("Error parsing the expression");
             }
 
-            Done:
-            while (stack.Count > 0)
-                this.bWriter.Write(stack.Pop());
-            this.bWriter.Seek(0, SeekOrigin.Begin);
-            var bf = new BinaryFormatter();
-            bf.Serialize(this.bWriter.BaseStream, varList.ToArray());
-            this.bWriter.Close();
-            this.bWriter.Dispose();
+            if (!string.IsNullOrEmpty(buf)) {
+                // Write index of the constant / variable
+                output += varList.Count + " ";
+                // Push variable in list
+                varList.Add(new Variable(buf));
+            }
+
+            while (stack.Count > 0) {
+                if (stack.Peek() == "(")
+                    throw new Exception("Wrong bracket sequence");
+                // Write operation to the output
+                output += stack.Pop() + " ";
+            }
+
+            varArray = varList.ToArray();
+            varList.Clear();
+            stack.Clear();
+            return output.TrimEnd();
         }
 
+
         #endregion
+
+        public void Dispose() {
+            this.bWriter?.Close();
+            this.bWriter?.Dispose();
+        }
 
     }
 
