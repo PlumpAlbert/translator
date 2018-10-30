@@ -1,17 +1,7 @@
 using System.Text.RegularExpressions;
 
 namespace Транслятор {
-
-    /// <summary>
-    /// Priority of the operators
-    /// </summary>
-    public enum Priority {
-        Low = 0,
-        Normal = 1,
-        High = 2,
-        Extreme = 3
-    }
-
+    
     public static class CharHelpers {
 
         private static readonly Regex regex = new Regex(@"[a-zA-Z]");
@@ -34,6 +24,7 @@ namespace Транслятор {
                 case '/':
                 case '*':
                 case '^':
+                case '(':
                     return true;
                 default:
                     return false;

@@ -14,7 +14,6 @@ namespace Транслятор {
                 var t = new Translator(args[1]);
                 t.Translate(args[0]);
                 Console.WriteLine("~> Done!");
-                Console.Read();
             }
             catch (Exception e) {
                 Console.WriteLine("~> " + e.Message);

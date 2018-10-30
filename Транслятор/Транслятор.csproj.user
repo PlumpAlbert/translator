@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <StartArguments>"5 + 5" test.bin</StartArguments>
+    <StartArguments>"sin%28-3.14 / 2%29 - tg%280.0101%29 + %282 %2a x + 2%29 %2a 1 %2a %283.01 - 4 - 5 + x - y%29 + cos%281.0%29 %2a 3" test.bin</StartArguments>
   </PropertyGroup>
 </Project>

@@ -3,6 +3,17 @@ using System.Text.RegularExpressions;
 
 namespace Транслятор {
 
+    /// <summary>
+    /// Priority of the operators
+    /// </summary>
+    public enum Priority {
+        Zero = 0,
+        One,
+        Two,
+        Three,
+        Four
+    }
+
     public static class StringHelpers {
 
         /// <summary>
@@ -62,19 +73,19 @@ namespace Транслятор {
         public static Priority OperationPriority(this string s) {
             switch (s) {
                 case "^":
-                    return Priority.Extreme;
+                    return Priority.Three;
                 case "*":
                 case "/":
-                    return Priority.High;
+                    return Priority.Two;
                 case "+":
                 case "-":
-                    return Priority.Normal;
+                    return Priority.One;
                 case "(":
                 case ")":
-                    return Priority.Low;
+                    return Priority.Zero;
+                default:
+                    throw new ArgumentException("String is not a operator");
             }
-
-            throw new ArgumentException("String is not a operator");
         }
 
         /// <summary>
@@ -84,7 +95,7 @@ namespace Транслятор {
             switch (s) {
                 case "sin":
                 case "cos":
-                case "tan":
+                case "tg":
                 case "ctg":
                 case "sqrt":
                 case "ln":
@@ -112,6 +123,11 @@ namespace Транслятор {
             }
         }
 
+        /// <summary>
+        /// Checks if the operation is binary
+        /// </summary>
+        /// <param name="s"></param>
+        /// <returns></returns>
         public static bool IsBinary(this string s) {
             switch (s) {
                 case "+":
