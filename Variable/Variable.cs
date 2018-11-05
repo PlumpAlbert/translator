@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Globalization;
 
-namespace Транслятор {
+namespace Types {
 
     [Serializable]
     public class Variable {

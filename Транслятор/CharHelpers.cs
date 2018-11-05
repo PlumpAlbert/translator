@@ -31,7 +31,7 @@ namespace Транслятор {
             }
         }
 
-        public static bool IsLetter(this char c) => regex.IsMatch(c.ToString());
+        public static bool IsLetter(this char c) { return regex.IsMatch(c.ToString()); }
 
     }
 

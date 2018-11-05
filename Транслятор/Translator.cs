@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Text.RegularExpressions;
+using Types;
 
 namespace Транслятор {
 
@@ -205,8 +206,8 @@ namespace Транслятор {
         #endregion
 
         public void Dispose() {
-            this.bWriter?.Close();
-            this.bWriter?.Dispose();
+            this.bWriter.Close();
+            this.bWriter.Dispose();
         }
 
     }
